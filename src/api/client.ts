@@ -8,6 +8,8 @@ function getConfig() {
   return useConfigStore.getState().app;
 }
 
+const isDev = import.meta.env.DEV;
+
 export async function apiClient(
   path: string,
   options: ApiClientOptions = {},
@@ -18,11 +20,8 @@ export async function apiClient(
   const cleanBase = config.apiBaseUrl.replace(/\/$/, "");
   const cleanPath = path.replace(/^\//, "");
 
-  const proxyUrl = `/ctc-proxy/${cleanPath}`;
-
   const baseHeaders: Record<string, string> = {
     Accept: "application/json",
-    "X-Target-Base": cleanBase,
   };
 
   const method = (init.method ?? "GET").toUpperCase();
@@ -34,7 +33,15 @@ export async function apiClient(
     baseHeaders["Authorization"] = `Basic ${btoa(`${config.apiKey}:${config.apiToken}`)}`;
   }
 
-  const res = await fetch(proxyUrl, {
+  let url: string;
+  if (isDev) {
+    url = `/ctc-proxy/${cleanPath}`;
+    baseHeaders["X-Target-Base"] = cleanBase;
+  } else {
+    url = `${cleanBase}/${cleanPath}`;
+  }
+
+  const res = await fetch(url, {
     ...init,
     credentials: omitCredentials ? "same-origin" : "include",
     headers: { ...baseHeaders, ...init.headers },

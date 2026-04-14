@@ -71,6 +71,7 @@ function ctcProxyPlugin(): Plugin {
 }
 
 export default defineConfig({
+  base: "/campaign-test-console/",
   plugins: [react(), ctcProxyPlugin()],
   resolve: {
     alias: {
